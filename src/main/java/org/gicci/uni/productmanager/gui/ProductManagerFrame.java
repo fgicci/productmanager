@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.gicci.uni.productmanager.model.Product;
 import org.gicci.uni.productmanager.service.ProductService;
@@ -17,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
@@ -43,7 +46,7 @@ public class ProductManagerFrame extends JFrame {
 		
 		lblName = new JLabel("Name: ");
 		lblQuantity = new JLabel("Quantity: ");
-		lblPrice = new JLabel("Price £: ");
+		lblPrice = new JLabel("Price Â£: ");
 		
 		txtName = new JTextField();
 		txtQuantity = new JTextField();
@@ -56,7 +59,12 @@ public class ProductManagerFrame extends JFrame {
 			}
 		});
 		
-		btnDelete = new JButton("Save");
+		btnDelete = new JButton("Delete");
+		btnDelete.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				deleteProduct();
+			}
+		});
 		
 		btnSell = new JButton("Sell");
 		
@@ -69,6 +77,19 @@ public class ProductManagerFrame extends JFrame {
 		
 		productTableModel = new ProductTableModel(productService);
 		tblProducts = new JTable(productTableModel);
+		tblProducts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tblProducts.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent evt) {
+				if (tblProducts.getSelectedRow() != -1) {
+					Product product = productService.find(tblProducts.getValueAt(tblProducts.getSelectedRow(), 0).toString());
+					txtName.setText(product.getName());
+					txtQuantity.setText(String.valueOf(product.getQuantity()));
+					txtPrice.setText(String.valueOf(product.getPrice()));
+				}
+			}
+		});
+		
 		tblProductsPane = new JScrollPane(tblProducts);
 	}
 	
@@ -135,15 +156,20 @@ public class ProductManagerFrame extends JFrame {
 			productService.create(product);
 			productTableModel.fireTableDataChanged();
 		} catch (RuntimeException ex) {
-			JOptionPane.showMessageDialog(this,
-				    					  ex.getMessage(),
-				    					  "Warning",
-				    					  JOptionPane.WARNING_MESSAGE);
+			JOptionPane.showMessageDialog(this, ex.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
 		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(this,
-				    					  ex.getMessage(),
-				    					  "Error",
-				    					  JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	private void deleteProduct() {
+		try {
+			productService.delete(txtName.getText());
+			productTableModel.fireTableDataChanged();
+		} catch (RuntimeException ex) {
+			JOptionPane.showMessageDialog(this, ex.getMessage(), "Warning", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 	
