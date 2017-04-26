@@ -5,9 +5,15 @@ import java.awt.event.ActionListener;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+
+import org.gicci.uni.productmanager.model.Product;
+import org.gicci.uni.productmanager.service.ProductService;
+import org.gicci.uni.productmanager.service.ProductServiceManager;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -16,15 +22,13 @@ import javax.swing.WindowConstants;
 
 public class ProductManagerFrame extends JFrame {
 
+	private ProductService productService;
 	private JLabel lblName, lblQuantity, lblPrice;
 	private JTextField txtName, txtQuantity, txtPrice;
 	private JButton btnSave, btnDelete, btnSell, btnExit;
 	private JTable tblProducts;
+	private ProductTableModel productTableModel;
 	private JScrollPane tblProductsPane;
-	private String[] columnNames = {"Name", "Quantity", "Price £"};
-	private Object[][] data = {{"P1", 1, 10.0}, 
-							   {"P2", 4, 15.67},
-							   {"P3", 9, 7.50}};
 	
 	public ProductManagerFrame() {
 		initialize();
@@ -35,6 +39,8 @@ public class ProductManagerFrame extends JFrame {
 	}
 	
 	private void initialize() {
+		productService = new ProductServiceManager();
+		
 		lblName = new JLabel("Name: ");
 		lblQuantity = new JLabel("Quantity: ");
 		lblPrice = new JLabel("Price £: ");
@@ -44,6 +50,11 @@ public class ProductManagerFrame extends JFrame {
 		txtPrice = new JTextField();
 		
 		btnSave = new JButton("Save");
+		btnSave.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				saveProduct();
+			}
+		});
 		
 		btnDelete = new JButton("Save");
 		
@@ -56,7 +67,8 @@ public class ProductManagerFrame extends JFrame {
 			}
 		});
 		
-		tblProducts = new JTable(data, columnNames);
+		productTableModel = new ProductTableModel(productService);
+		tblProducts = new JTable(productTableModel);
 		tblProductsPane = new JScrollPane(tblProducts);
 	}
 	
@@ -115,6 +127,24 @@ public class ProductManagerFrame extends JFrame {
 		);
 
         createBufferStrategy(1);
+	}
+	
+	private void saveProduct() {
+		try {
+			Product product = new Product(txtName.getText(), Integer.parseInt(txtQuantity.getText()), Double.parseDouble(txtPrice.getText()));
+			productService.create(product);
+			productTableModel.fireTableDataChanged();
+		} catch (RuntimeException ex) {
+			JOptionPane.showMessageDialog(this,
+				    					  ex.getMessage(),
+				    					  "Warning",
+				    					  JOptionPane.WARNING_MESSAGE);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this,
+				    					  ex.getMessage(),
+				    					  "Error",
+				    					  JOptionPane.ERROR_MESSAGE);
+		}
 	}
 	
 	private void exitFrame() {

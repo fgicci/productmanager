@@ -1,6 +1,8 @@
 package org.gicci.uni.productmanager.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gicci.uni.productmanager.model.Product;
@@ -37,6 +39,11 @@ public class ProductServiceManager implements ProductService {
 	public Product find(String name) throws RuntimeException {
 		if (!products.containsKey(name)) throw new RuntimeException(RECORD_NOT_FOUND);
 		return products.get(name);
+	}
+
+	@Override
+	public List<Product> findAll() {
+		return new ArrayList<Product>(products.values());
 	}
 
 	@Override
